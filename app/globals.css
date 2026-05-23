@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Politpuls — design system
+   Ported from the PoliQuest prototype. Schwarz-Rot-Gold,
+   warm cream paper, chunky 3D press-buttons.
+   ============================================================ */
+
+:root {
+  /* === Schwarz–Rot–Gold === */
+  --pq-black: #14130f;
+  --pq-ink: #1f1d17;
+  --pq-ink-soft: #4a463c;
+  --pq-ink-mute: #807a6a;
+  --pq-line: #e8e2d2;
+  --pq-line-soft: #f0eadb;
+
+  --pq-paper: #fbf6e9; /* warm cream background */
+  --pq-paper-2: #f4ecd6; /* a bit deeper */
+  --pq-white: #ffffff;
+
+  --pq-gold: #f6c414; /* main action, Duolingo-yellow energy */
+  --pq-gold-deep: #c48a05; /* gold button shadow / pressed */
+  --pq-gold-soft: #ffe9a0;
+
+  --pq-red: #d81e26; /* Bundesflagge red */
+  --pq-red-deep: #9b1219;
+  --pq-red-soft: #fce0df;
+
+  --pq-green: #2e9f5d; /* correct / streak */
+  --pq-green-deep: #166b3a;
+  --pq-green-soft: #d8f0de;
+
+  --pq-blue: #1b5fae; /* secondary info accent */
+  --pq-blue-soft: #dceaf7;
+
+  /* shadows for the chunky 3D press buttons */
+  --pq-shadow-card: 0 1px 0 rgba(20, 19, 15, 0.04), 0 8px 24px -10px rgba(20, 19, 15, 0.1);
+  --pq-radius-card: 22px;
+  --pq-radius-pill: 999px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #e6dfcd;
+}
+
+body {
+  font-family: var(--font-body), "Schibsted Grotesk", ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
+  color: var(--pq-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display type */
+.pq-display {
+  font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+}
+.pq-display-tight {
+  font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+}
+.pq-display-wide {
+  font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
+  letter-spacing: -0.005em;
+}
+.pq-mono {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* shared button base — chunky press style */
+.pq-press {
+  position: relative;
+  border: 0;
+  border-radius: 16px;
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.08s cubic-bezier(0.3, 0.7, 0.4, 1.4), filter 0.12s;
+  user-select: none;
+}
+.pq-press:active {
+  transform: translateY(2px);
+  filter: brightness(0.97);
+}
+
+.pq-paper-grain {
+  background-color: var(--pq-paper);
+  background-image: radial-gradient(circle at 20% 20%, rgba(196, 138, 5, 0.04), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(155, 18, 25, 0.03), transparent 45%);
+}
+
+/* ─── Game-feel keyframes ─── */
+@keyframes pq-pulse {
+  0% { transform: scale(1); opacity: 0.55; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes pq-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+@keyframes pq-flicker {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  30% { transform: scale(1.12) rotate(3deg); }
+  60% { transform: scale(0.95) rotate(-3deg); }
+}
+@keyframes pq-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pq-flag-sweep {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes pq-rise {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes pq-notif-drop {
+  0% { transform: translateY(-120%); opacity: 0; }
+  60% { transform: translateY(4px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes pq-cat-intro-card {
+  0% { transform: translate(calc(-50% + 60px), 90px) rotate(9deg) scale(0.94); opacity: 0; }
+  18% { transform: translate(-50%, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+@keyframes pq-cat-title {
+  0% { transform: translateY(22px); opacity: 0; letter-spacing: 0; }
+  45% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; letter-spacing: -0.04em; }
+}
+@keyframes pq-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+@keyframes pq-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(246, 196, 20, 0.6), 0 6px 24px -8px rgba(196, 138, 5, 0.55); }
+  50% { box-shadow: 0 0 0 8px rgba(246, 196, 20, 0), 0 10px 30px -8px rgba(196, 138, 5, 0.7); }
+}
+@keyframes pq-arrow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+@keyframes pq-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* hide scrollbar in inner areas but allow scroll */
+.pq-scroll {
+  scrollbar-width: none;
+}
+.pq-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── App stage: center a phone-width column on desktop, full-bleed on mobile ─── */
+.pq-stage {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background: #e6dfcd;
+}
+.pq-app {
+  width: 100%;
+  max-width: 460px;
+  min-height: 100dvh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  overflow: hidden;
+}
+@media (min-width: 480px) {
+  .pq-app {
+    min-height: 100dvh;
+    box-shadow: 0 0 80px -20px rgba(20, 19, 15, 0.4);
+  }
+}
+
+/* native form controls inherit the brand font */
+input,
+textarea,
+button,
+select {
+  font-family: inherit;
+}
+
+/* range input — used in mission sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1f1d17;
+  border: 4px solid #f6c414;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(20, 19, 15, 0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1f1d17;
+  border: 4px solid #f6c414;
+  cursor: pointer;
+}
