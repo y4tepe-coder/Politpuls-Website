@@ -1,9 +1,10 @@
-/* Shared domain types for Politpuls. */
+/* Shared domain types for Politpuls. Ported from iOS Models/Types.swift. */
 
 export type Skin = "clean" | "paper" | "dark";
 export type MascotStyle = "bold" | "line" | "mosaic";
 export type Role = "kandidat" | "kanzler" | "minister" | "opposition";
 export type Stance = "ja" | "neutral" | "nein";
+export type Gender = "m" | "w" | "d";
 export type PartyId =
   | "cdu"
   | "spd"
@@ -14,9 +15,59 @@ export type PartyId =
   | "bsw"
   | "eigen";
 
-/* The four pre-made style avatars (no real politicians). */
+export type Difficulty = "einfach" | "mittel" | "schwer" | "extrem";
+
+export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  einfach: "Einfach",
+  mittel: "Mittel",
+  schwer: "Schwer",
+  extrem: "Extrem schwer",
+};
+
+export const DIFFICULTY_BLURB: Record<Difficulty, string> = {
+  einfach: "Viele Erklärungen, milde Folgen — ideal zum Reinkommen.",
+  mittel: "Ausgewogen: realistische Folgen, faire Hinweise.",
+  schwer: "Härtere Konsequenzen, wenige Hilfen — für Erfahrene.",
+  extrem: "Gnadenlos: maximale Folgen, keine Hinweise.",
+};
+
+/** Migrate legacy difficulty values from older save states. */
+export function normalizeDifficulty(raw: string | undefined | null): Difficulty {
+  switch (raw) {
+    case "einfach":
+    case "einsteiger":
+      return "einfach";
+    case "schwer":
+    case "profi":
+      return "schwer";
+    case "extrem":
+      return "extrem";
+    default:
+      return "mittel";
+  }
+}
+
+/** Geschlechtsgerechter Rollen-Titel. */
+export function roleTitle(role: Role, gender?: string | null): string {
+  switch (role) {
+    case "kandidat":
+      return gender === "m" ? "Kandidat" : gender === "w" ? "Kandidatin" : "Kandidat:in";
+    case "kanzler":
+      return gender === "m"
+        ? "Bundeskanzler"
+        : gender === "w"
+          ? "Bundeskanzlerin"
+          : "Bundeskanzler:in";
+    case "minister":
+      return gender === "m" ? "Minister" : gender === "w" ? "Ministerin" : "Minister:in";
+    case "opposition":
+      return "Opposition";
+  }
+}
+
+/* A freely built style avatar (no real politicians). */
 export interface Character {
-  gender: "m" | "f";
+  gender: Gender;
   skin: number;
   hair: number;
   hairColor: number;
@@ -24,6 +75,8 @@ export interface Character {
   beard: number;
   suit: number;
   tie: number;
+  expression: number;
+  accessory: number;
   presetId?: string;
   kind?: string;
   photo?: string;
@@ -48,6 +101,11 @@ export interface Profile {
   electedRole?: Role;
   electionResults?: ElectionResult[];
   coalitionParties?: string[];
+  /** Gewähltes Ministerium nach der Koalitionsverhandlung (KOA_RESSORTS-id). */
+  ressort?: string;
+  gender?: Gender;
+  age?: number;
+  difficulty?: Difficulty;
 }
 
 export interface Session {
@@ -63,20 +121,39 @@ export interface Progress {
   xp: number;
   startedAt: number;
   dailyDone?: number[];
+  /** IDs der bereits gezeigten Tutorial-Erklärungen. Append-only. */
+  tutorialsSeen?: string[];
 }
 
 export interface MissionRecord {
   score: number;
-  details: Record<string, unknown>;
+  details?: Record<string, unknown>;
   at: number;
 }
 
 export interface CampaignState {
   missions: Record<string, MissionRecord>;
   aiAnalysis: string | null;
+  /** Wahlversprechen-ids — gesetzt vom Programm-Schritt, gelesen vom Bundeshaushalt. */
+  programmPicks?: string[];
+  /** Aufgebaute Parteistärke — wächst über Wahlkämpfe hinweg. */
+  partyStanding?: number;
 }
 
-/* Daily-mission dossier (KI-Redaktion) */
+/** The campaign poster the user designs each cycle. */
+export interface PlakatState {
+  slogan: string;
+  subline: string;
+  movement: string;
+  candidate: string;
+  role: string;
+  layout: "classic" | "modern" | "bold";
+  accent: "red" | "gold" | "black";
+  motif: string;
+  saved: boolean;
+}
+
+/* Daily-mission dossier (Redaktion) */
 export interface DossierOutlet {
   name: string;
   dot: string;
@@ -105,6 +182,25 @@ export interface DossierChoice {
   presets: string[];
   deltas: DossierDelta[];
 }
+export interface DossierStat {
+  value: string;
+  unit?: string;
+  caption?: string;
+}
+
+export interface DossierSource {
+  title: string;
+  outlet: string;
+  url: string;
+  date?: string;
+}
+
+export interface GlossarEntry {
+  term: string;
+  short: string;
+  long?: string;
+}
+
 export interface Dossier {
   id: string;
   day: number;
@@ -118,6 +214,12 @@ export interface Dossier {
     lede: string;
     pull: string;
     byline: string;
+    body?: string[];
+    kennzahl?: DossierStat;
+    streitfrage?: string;
+    pro?: string[];
+    contra?: string[];
+    fuerdich?: string;
   };
   video: {
     channel: string;
@@ -126,23 +228,20 @@ export interface Dossier {
     blurb: string;
     runtime: string;
     time: string;
+    url?: string;
   };
   facts: string[];
+  sources?: DossierSource[];
+  glossar?: GlossarEntry[];
   prompt: Record<string, string>;
   choices: DossierChoice[];
 }
 
-/* The 9-step Wahlkampf */
-export type WahlkampfStepId =
-  | "themen"
-  | "programm"
-  | "plakat"
-  | "rede"
-  | "social"
-  | "presse"
-  | "tv"
-  | "tour"
-  | "wahl";
+/* ─── Wahlkampf cycle ─────────────────────────────────────────
+   iOS-Stand: 4 Schritte (programm/plakat/tv/wahl). Themen, Rede,
+   Social, Presse, Tour wurden bewusst gestrichen — die Themenwahl
+   im Programm genügt, der Rest soll schnell gehen. */
+export type WahlkampfStepId = "programm" | "plakat" | "tv" | "wahl";
 
 export interface WahlkampfStep {
   id: WahlkampfStepId;
@@ -161,3 +260,24 @@ export interface WahlkampfPhase {
   stepsToday?: WahlkampfStepId[];
   daysOut?: number;
 }
+
+/* ─── App navigation ──────────────────────────────────────── */
+export type Stage = "splash" | "auth" | "onboarding" | "app";
+
+export type Screen =
+  | "home"
+  | "phone"
+  | "spectrum"
+  | "profile"
+  | "decision"
+  | "plakat"
+  | "wahlkampf"
+  | "valuescheck"
+  | "auth";
+
+/** What the mission router is currently showing. */
+export type MissionSlot =
+  | { kind: "daily" }
+  | { kind: "step"; step: WahlkampfStepId }
+  | { kind: "haushalt" }
+  | { kind: "koalition" };

@@ -5,26 +5,23 @@ import { loadProgress, loadSession } from "@/lib/storage";
 import { completeWahlkampfStep, awardXp } from "@/lib/wahlkampf";
 import Decision from "./screens/Decision";
 import {
-  MissionThemen,
   MissionProgramm,
   MissionPlakat,
-  MissionRede,
-  MissionSocial,
-  MissionPresse,
   MissionTV,
-  MissionMarkt,
   MissionWahl,
   MissionBundeshaushalt,
 } from "./screens/Missions";
+import MissionKoalition from "./screens/Koalition";
 
 /* The mission slot can hold a Wahlkampf step, the post-election budget
-   mission, or null = the daily KI-Redaktion mission. */
-export type MissionStep = WahlkampfStepId | "haushalt" | null;
+   mission, the coalition negotiation, or null = the daily mission. */
+export type MissionStep = WahlkampfStepId | "haushalt" | "koalition" | null;
 
 /**
  * Routes the active mission slot to the right screen.
  *  • Wahlkampf step → the matching Mission*, then completeWahlkampfStep()
- *  • 'haushalt'     → the Bundeshaushalt simulator (Kanzler:in only)
+ *  • 'haushalt'     → Bundeshaushalt simulator (Kanzler:in only)
+ *  • 'koalition'    → Koalitionsverhandlung post-Wahl
  *  • null           → the daily decision flow (handles its own completion)
  */
 export default function MissionRouter({
@@ -56,6 +53,19 @@ export default function MissionRouter({
     );
   }
 
+  if (stepId === "koalition") {
+    return (
+      <MissionKoalition
+        skin={skin}
+        onClose={onClose}
+        onDone={(xp = 80) => {
+          awardXp(xp);
+          onComplete();
+        }}
+      />
+    );
+  }
+
   if (stepId) {
     const onDone = (xp = 50) => {
       completeWahlkampfStep(stepId, xp);
@@ -63,22 +73,12 @@ export default function MissionRouter({
     };
     const props = { skin, day, role, onClose, onDone };
     switch (stepId) {
-      case "themen":
-        return <MissionThemen {...props} />;
       case "programm":
         return <MissionProgramm {...props} />;
       case "plakat":
         return <MissionPlakat {...props} />;
-      case "rede":
-        return <MissionRede {...props} />;
-      case "social":
-        return <MissionSocial {...props} />;
-      case "presse":
-        return <MissionPresse {...props} />;
       case "tv":
         return <MissionTV {...props} />;
-      case "tour":
-        return <MissionMarkt {...props} />;
       case "wahl":
         return <MissionWahl {...props} />;
     }

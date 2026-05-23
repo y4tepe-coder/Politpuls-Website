@@ -18,15 +18,13 @@ import {
    Ported from the prototype's screen-home.jsx + screen-mission.jsx.
    ============================================================ */
 
+/* iOS-Stand: 4 Schritte (programm/plakat/tv/wahl). Themen, Rede,
+   Social, Presse, Tour wurden bewusst gestrichen — Themenwahl
+   passiert im Programm, der Rest soll schnell gehen. */
 export const WK_STEPS: WahlkampfStep[] = [
-  { id: "themen", label: "Themen-Setzung", short: "Themen", k: "briefing", desc: "Wähle deine 3 Kernthemen" },
-  { id: "programm", label: "Wahlprogramm", short: "Programm", k: "briefing", desc: "Top-5 Versprechen" },
+  { id: "programm", label: "Wahlprogramm", short: "Programm", k: "briefing", desc: "Deine 3 Wahlkampf-Themen" },
   { id: "plakat", label: "Wahlplakat", short: "Plakat", k: "meeting", desc: "Foto, Slogan, Farbe" },
-  { id: "rede", label: "Antrittsrede", short: "Rede", k: "briefing", desc: "Auftakt im Bundestag" },
-  { id: "social", label: "Social Media", short: "Social", k: "meeting", desc: "TikTok- & Insta-Plan" },
-  { id: "presse", label: "Pressekonferenz", short: "Presse", k: "meeting", desc: "Hauptstadt-Korrespondenten" },
-  { id: "tv", label: "TV-Triell", short: "TV", k: "tv", desc: "3 Fragen live im Studio" },
-  { id: "tour", label: "Wahlkampftour", short: "Tour", k: "decision", desc: "Markt & Hausbesuche" },
+  { id: "tv", label: "TV-Triell", short: "TV", k: "tv", desc: "5 Fragen live im Studio" },
   { id: "wahl", label: "Wahlsonntag", short: "Wahl", k: "vote", desc: "Hochrechnung 18:00" },
 ];
 
@@ -59,14 +57,19 @@ export function wahlkampfFor(day: number): WahlkampfPhase {
   const daysOut = eDay - day;
   if (daysOut >= 0 && daysOut <= 2) {
     const dayInPhase = 3 - daysOut;
-    const startIdx = (dayInPhase - 1) * 3;
+    // Schritte gleichmäßig auf 3 Tage verteilen — bei 4 Schritten ergibt
+    // perDay=1, am Wahltag (dayInPhase=3) fallen die letzten 2 zusammen.
+    const perDay = Math.max(1, Math.floor(WK_STEPS.length / 3));
+    const startIdx = Math.min((dayInPhase - 1) * perDay, WK_STEPS.length);
+    const endIdx =
+      dayInPhase === 3 ? WK_STEPS.length : Math.min(startIdx + perDay, WK_STEPS.length);
     return {
       active: true,
       intensive: false,
       electionDay: eDay,
       dayInPhase,
       totalPhaseDays: 3,
-      stepsToday: WK_STEPS.slice(startIdx, startIdx + 3).map((s) => s.id),
+      stepsToday: WK_STEPS.slice(startIdx, endIdx).map((s) => s.id),
     };
   }
   return { active: false, electionDay: eDay, daysOut };

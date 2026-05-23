@@ -256,3 +256,56 @@ export function regierungsParteien(
   }
   return [top.id, ownPartyId];
 }
+
+/* Alle realistischen Regierungskoalitionen, in denen die eigene
+   Partei mitregiert — zur Auswahl in der Koalitionsverhandlung. */
+export function moeglicheKoalitionen(
+  results: ElectionResult[],
+  ownPartyId: string,
+): string[][] {
+  if (!results?.length) return [];
+  const top = results[0];
+  const topId = top.id;
+  const pct = (id: string) => results.find((r) => r.id === id)?.pct ?? 0;
+
+  /* Nur die Top-5 sind realistische Regierungsparteien. */
+  const candidates = results
+    .slice(0, 5)
+    .map((r) => r.id)
+    .filter((id) => id !== topId);
+
+  const combos: string[][] = [];
+  for (let i = 0; i < candidates.length; i++) {
+    combos.push([topId, candidates[i]]);
+    for (let j = i + 1; j < candidates.length; j++) {
+      combos.push([topId, candidates[i], candidates[j]]);
+    }
+  }
+
+  const seen = new Set<string>();
+  let found: string[][] = [];
+  for (const combo of combos) {
+    if (!combo.includes(ownPartyId)) continue;
+    if (!combinationFeasible(combo)) continue;
+    if (combo.reduce((s, id) => s + pct(id), 0) <= 50.5) continue;
+    const sorted = [...combo].sort((a, b) => pct(b) - pct(a));
+    const key = sorted.join(",");
+    if (!seen.has(key)) {
+      seen.add(key);
+      found.push(sorted);
+    }
+  }
+  /* Wenige Partner zuerst, dann knappste Mehrheit zuerst. */
+  found.sort((a, b) => {
+    if (a.length !== b.length) return a.length - b.length;
+    return (
+      a.reduce((s, id) => s + pct(id), 0) -
+      b.reduce((s, id) => s + pct(id), 0)
+    );
+  });
+  if (found.length === 0) {
+    const auto = regierungsParteien(results, ownPartyId);
+    if (auto.length > 0) found = [auto];
+  }
+  return found.slice(0, 6);
+}

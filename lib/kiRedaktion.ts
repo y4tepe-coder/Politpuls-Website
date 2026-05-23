@@ -750,8 +750,24 @@ const DOSSIERS: DossierSeed[] = [
 
 export const DOSSIER_COUNT = DOSSIERS.length;
 
-/* Pick the dossier for a given app-day; wraps around. */
+/* Pick the dossier for a given app-day; wraps around.
+   Bevorzugt das tagesaktuelle Redaktions-Feed (raw.githubusercontent.com),
+   fällt auf den hardcoded Mock zurück wenn kein Cache vorhanden ist. */
 export function dossierForDay(day: number): Dossier {
+  if (typeof window !== "undefined") {
+    try {
+      const raw = window.localStorage.getItem("pq.feed.dossiers");
+      if (raw) {
+        const cached = JSON.parse(raw) as Dossier[];
+        if (Array.isArray(cached) && cached.length > 0) {
+          const idx = (((day - 1) % cached.length) + cached.length) % cached.length;
+          return { ...cached[idx], day };
+        }
+      }
+    } catch {
+      /* fall through to hardcoded mock */
+    }
+  }
   const idx = (((day - 1) % DOSSIERS.length) + DOSSIERS.length) % DOSSIERS.length;
   return { ...DOSSIERS[idx], day, date: dateForDay(day) };
 }

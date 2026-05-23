@@ -14,10 +14,10 @@ export interface CharacterPreset {
 }
 
 export const CHARACTER_PRESETS: CharacterPreset[] = [
-  { id: "p1", name: "Mara", label: "Pragmatisch", char: { gender: "f", skin: 0, hair: 0, hairColor: 2, glasses: false, beard: 0, suit: 0, tie: 4 } },
-  { id: "p2", name: "Jonas", label: "Idealistisch", char: { gender: "m", skin: 0, hair: 2, hairColor: 1, glasses: false, beard: 0, suit: 1, tie: 1 } },
-  { id: "p3", name: "Yusuf", label: "Analytisch", char: { gender: "m", skin: 2, hair: 0, hairColor: 0, glasses: true, beard: 0, suit: 0, tie: 3 } },
-  { id: "p4", name: "Hanna", label: "Energisch", char: { gender: "f", skin: 0, hair: 1, hairColor: 0, glasses: false, beard: 0, suit: 2, tie: 0 } },
+  { id: "p1", name: "Mara",  label: "Pragmatisch",  char: { gender: "w", skin: 0, hair: 0, hairColor: 2, glasses: false, beard: 0, suit: 0, tie: 4, expression: 0, accessory: 0 } },
+  { id: "p2", name: "Jonas", label: "Idealistisch", char: { gender: "m", skin: 0, hair: 2, hairColor: 1, glasses: false, beard: 0, suit: 1, tie: 1, expression: 0, accessory: 0 } },
+  { id: "p3", name: "Yusuf", label: "Analytisch",   char: { gender: "m", skin: 2, hair: 0, hairColor: 0, glasses: true,  beard: 0, suit: 0, tie: 3, expression: 0, accessory: 0 } },
+  { id: "p4", name: "Hanna", label: "Energisch",    char: { gender: "w", skin: 0, hair: 1, hairColor: 0, glasses: false, beard: 0, suit: 2, tie: 0, expression: 0, accessory: 0 } },
 ];
 
 export function defaultCharacter(): Character {

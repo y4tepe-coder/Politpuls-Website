@@ -6,6 +6,7 @@ import type { Character, Skin } from "@/lib/types";
 import { skinTokens } from "@/lib/tokens";
 import { loadSession, saveSession, clearAllData } from "@/lib/storage";
 import { nextStepToday } from "@/lib/wahlkampf";
+import { refreshDossiers } from "@/lib/dossierFeed";
 import { BottomNav, type NavId } from "@/components/ui";
 import MissionRouter, { type MissionStep } from "@/components/MissionRouter";
 import Splash from "@/components/screens/Splash";
@@ -61,6 +62,10 @@ export default function PoliQuestApp() {
     const s = loadSession();
     setStage(s && s.onboarded && s.profile ? "app" : "splash");
     setMounted(true);
+    /* Fire-and-forget: holt das aktuelle Tages-Dossier vom GitHub-Feed
+       und legt es in localStorage ab. Nächste dossierForDay()-Aufrufe
+       greifen direkt auf den frischen Stand zu. */
+    void refreshDossiers();
   }, []);
 
   const skin = skinTokens(SKIN);
@@ -121,20 +126,31 @@ export default function PoliQuestApp() {
   };
 
   /* A mission finished. Wahlkampf steps return to the campaign HQ;
-     the Wahlsonntag chains a winning Kanzler:in into the budget. */
+     the Wahlsonntag chains the winner into the Koalitionsverhandlung,
+     which itself may chain Kanzler:in/Finanzminister:in into the budget. */
   const completeMission = () => {
     const step = missionStep;
-    if (step && step !== "haushalt") {
-      if (step === "wahl") {
-        const role = loadSession().profile?.role;
-        if (role === "kanzler") {
-          setMissionStep("haushalt");
-          return; // stay on 'decision', re-render with the budget mission
-        }
-        setMissionStep(null);
-        setScreen("home");
-        return;
+    if (step === "wahl") {
+      const role = loadSession().profile?.role;
+      if (role === "kanzler" || role === "minister") {
+        setMissionStep("koalition");
+        return; // stay on 'decision', re-render with Koalitionsverhandlung
       }
+      setMissionStep(null);
+      setScreen("home");
+      return;
+    }
+    if (step === "koalition") {
+      const profile = loadSession().profile;
+      if (profile?.ressort === "kanzleramt" || profile?.ressort === "finanzen") {
+        setMissionStep("haushalt");
+        return; // direkt in den Bundeshaushalt
+      }
+      setMissionStep(null);
+      setScreen("home");
+      return;
+    }
+    if (step && step !== "haushalt") {
       setMissionStep(null);
       setScreen("wahlkampf");
       return;

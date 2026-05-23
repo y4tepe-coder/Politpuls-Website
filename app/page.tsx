@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { renderCanvas } from "@/components/ui/canvas";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -19,6 +21,10 @@ export default function Landing() {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, -80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
 
+  useEffect(() => {
+    renderCanvas();
+  }, []);
+
   return (
     <main style={{ background: "var(--pq-paper)", color: "var(--pq-ink)", overflowX: "hidden" }}>
       {/* ─── Hero ───────────────────────────────────────────────── */}
@@ -33,6 +39,18 @@ export default function Landing() {
           position: "relative",
         }}
       >
+        <canvas
+          id="canvas"
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            margin: "0 auto",
+            pointerEvents: "none",
+            zIndex: 1,
+            mixBlendMode: "multiply",
+          }}
+        />
         <FlagOrbs />
 
         <motion.div
@@ -189,6 +207,67 @@ export default function Landing() {
             ))}
           </motion.ol>
         </div>
+      </section>
+
+      {/* ─── Scroll-Animation: das Spiel im Handy ──────────────── */}
+      <section style={{ background: "var(--pq-paper)" }}>
+        <ContainerScroll
+          titleComponent={
+            <div style={{ paddingInline: 24 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: "var(--pq-red)",
+                  fontWeight: 600,
+                  marginBottom: 12,
+                }}
+              >
+                Direkt ausprobieren
+              </div>
+              <h2
+                className="pq-display-tight"
+                style={{
+                  fontSize: "clamp(32px, 5vw, 56px)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.025em",
+                  lineHeight: 1.05,
+                  margin: 0,
+                }}
+              >
+                Politpuls ist <br />
+                <span style={{ color: "var(--pq-red)" }}>für dein Handy</span> gebaut.
+              </h2>
+              <p
+                style={{
+                  marginTop: 14,
+                  fontSize: 16,
+                  color: "var(--pq-ink-soft)",
+                  maxWidth: 520,
+                  marginInline: "auto",
+                  lineHeight: 1.55,
+                }}
+              >
+                Scroll runter — und probier es direkt aus. Echte Politik, echte
+                Entscheidungen, ohne Account.
+              </p>
+            </div>
+          }
+        >
+          <iframe
+            src="/play/"
+            title="Politpuls — live Spiel"
+            loading="lazy"
+            style={{
+              width: "100%",
+              height: "100%",
+              border: 0,
+              borderRadius: 36,
+              background: "#FBF6E9",
+            }}
+          />
+        </ContainerScroll>
       </section>
 
       {/* ─── 100 Tage Vorschau ─────────────────────────────────── */}
